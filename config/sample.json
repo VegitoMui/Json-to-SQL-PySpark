@@ -1,0 +1,15 @@
+{
+  "source": {
+    "table": "employees"
+  },
+  "transformations": [
+    {
+      "type": "column_transform",
+      "columns": [
+        {
+          "alias": "salary_double"
+        }
+      ]
+    }
+  ]
+}
