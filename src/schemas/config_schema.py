@@ -91,6 +91,27 @@ class Aggregation(BaseModel):
     function: str
     alias: str
 
+# ---------- DISTINCT ----------
+
+class DistinctTransform(BaseModel):
+    type: Literal["distinct"]
+
+# ---------- UNION ----------
+
+class UnionTransform(BaseModel):
+    type: Literal["union"]
+    table: str
+    union_type: Optional[str] = "union"
+
+# ---------- SUBQUERY ----------
+
+class SubqueryTransform(BaseModel):
+    type: Literal["subquery"]
+    alias: str
+    source: Source
+    transformations: List[dict]
+
+
 
 class GroupByTransform(BaseModel):
     type: Literal["groupby"]
@@ -111,10 +132,12 @@ Transformation = Annotated[
         ColumnTransform,
         WindowTransform,
         GroupByTransform,
+        DistinctTransform,
+        UnionTransform,
+        SubqueryTransform
     ],
     Field(discriminator="type"),
 ]
-
 
 # ---------- MAIN CONFIG ----------
 

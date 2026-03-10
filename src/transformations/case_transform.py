@@ -12,17 +12,26 @@ def handle_case_sql(t):
 
 def handle_case_pyspark(t):
 
-    alias = t["alias"]
     cases = t["cases"]
+    else_val = t["else"]
+    alias = t["alias"]
 
-    def wrap_condition(cond):
-        return cond.replace("salary", 'col("salary")')
+    code = f'df = df.withColumn("{alias}", '
 
-    case_code = f'when({wrap_condition(cases[0]["when"])}, {cases[0]["then"]})'
+    first = True
 
-    for c in cases[1:]:
-        case_code += f'.when({wrap_condition(c["when"])}, {c["then"]})'
+    for c in cases:
 
-    case_code += f'.otherwise({t["else"]})'
+        cond = c["when"]
 
-    return f'df = df.withColumn("{alias}", {case_code})\n'
+        cond = cond.replace("salary_double", 'col("salary_double")')
+
+        if first:
+            code += f'when({cond}, {c["then"]})'
+            first = False
+        else:
+            code += f'.when({cond}, {c["then"]})'
+
+    code += f'.otherwise({else_val}))\n'
+
+    return code

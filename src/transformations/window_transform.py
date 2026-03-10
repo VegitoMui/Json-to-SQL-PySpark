@@ -22,17 +22,23 @@ def handle_window_sql(t):
 def handle_window_pyspark(t):
 
     func = t["function"]
+    partition = t.get("partition_by", [])
+    order = t.get("order_by", [])
     alias = t["alias"]
 
-    partition_cols = t.get("partition_by", [])
-    order_cols = t.get("order_by", [])
+    partition_str = ", ".join([f'"{p}"' for p in partition])
 
-    partition_str = ", ".join([f'"{c}"' for c in partition_cols])
-    order_str = ", ".join([f'"{c}"' for c in order_cols])
+    order_parts = []
+    for o in order:
+        col_name, direction = o.split()
+        if direction.lower() == "desc":
+            order_parts.append(f'col("{col_name}").desc()')
+        else:
+            order_parts.append(f'col("{col_name}").asc()')
 
-    code = ""
+    order_str = ", ".join(order_parts)
 
-    code += f"window_spec = Window.partitionBy({partition_str}).orderBy({order_str})\n"
+    code = f'window_spec = Window.partitionBy({partition_str}).orderBy({order_str})\n'
     code += f'df = df.withColumn("{alias}", {func}().over(window_spec))\n'
 
     return code

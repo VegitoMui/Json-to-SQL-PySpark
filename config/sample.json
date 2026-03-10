@@ -3,13 +3,128 @@
     "table": "employees"
   },
   "transformations": [
+
     {
       "type": "column_transform",
       "columns": [
         {
+          "name": "salary",
+          "cast": "double",
           "alias": "salary_double"
         }
       ]
+    },
+
+    {
+      "type": "case_when",
+      "cases": [
+        {
+          "when": "salary_double >= 80000",
+          "then": "'HIGH'"
+        },
+        {
+          "when": "salary_double >= 50000",
+          "then": "'MEDIUM'"
+        }
+      ],
+      "else": "'LOW'",
+      "alias": "salary_band"
+    },
+
+    {
+      "type": "filter",
+      "condition": "salary_double > 30000"
+    },
+
+    {
+      "type": "join",
+      "join_type": "inner",
+      "table": "departments",
+      "on_left": "dept_id",
+      "on_right": "dept_id"
+    },
+
+    {
+      "type": "join",
+      "join_type": "cross",
+      "table": "calendar",
+      "on_left": "dept_id",
+      "on_right": "dept_id"
+    },
+
+    {
+      "type": "window",
+      "function": "row_number",
+      "partition_by": ["dept_id"],
+      "order_by": ["salary desc"],
+      "alias": "dept_rank"
+    },
+
+    {
+      "type": "distinct"
+    },
+
+    {
+      "type": "subquery",
+      "alias": "ranked_emp",
+      "source": {
+        "table": "employees"
+      },
+      "transformations": [
+        {
+          "type": "select",
+          "columns": [
+            "emp_id",
+            "dept_id",
+            "salary"
+          ]
+        },
+        {
+          "type": "window",
+          "function": "row_number",
+          "partition_by": ["dept_id"],
+          "order_by": ["salary desc"],
+          "alias": "rank"
+        },
+        {
+          "type": "filter",
+          "condition": "rank = 1"
+        }
+      ]
+    },
+
+    {
+      "type": "groupby",
+      "columns": ["dept_id"],
+      "aggregations": [
+        {
+          "column": "salary_double",
+          "function": "avg",
+          "alias": "avg_salary"
+        },
+        {
+          "column": "emp_id",
+          "function": "count",
+          "alias": "employee_count"
+        }
+      ]
+    },
+
+    {
+      "type": "order_by",
+      "columns": ["avg_salary desc"]
+    },
+
+    {
+      "type": "limit",
+      "value": 10
+    },
+
+    {
+      "type": "union",
+      "table": "employees_archive",
+      "union_type": "union all"
     }
+
   ]
 }

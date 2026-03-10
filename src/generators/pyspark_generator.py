@@ -21,6 +21,10 @@ def generate_pyspark(config):
         if not handler:
             raise ValueError(f"Unsupported transformation: {t_type}")
 
-        code += handler(t)
+        result = handler(t)
+
+        # some handlers may return None
+        if result:
+            code += result
 
     return code
