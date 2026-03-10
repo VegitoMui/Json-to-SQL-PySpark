@@ -15,6 +15,9 @@ def generate_sql(config):
     order_clause = ""
     limit_clause = ""
 
+    distinct_flag = False
+    union_clauses = []
+
     for t in transformations:
 
         t_type = t["type"]
@@ -25,6 +28,9 @@ def generate_sql(config):
 
         if t_type == "select":
             base_columns = handler(t)
+
+        elif t_type == "distinct":
+            distinct_flag = True
 
         elif t_type == "join":
             join_clause += handler(t, table)
@@ -41,6 +47,18 @@ def generate_sql(config):
         elif t_type == "limit":
             limit_clause = handler(t)
 
+        elif t_type == "union":
+            union_clauses.append(handler(t))
+
+        elif t_type == "subquery":
+            # recursive SQL generation
+            subquery_sql = generate_sql({
+                "source": t["source"],
+                "transformations": t["transformations"]
+            })
+
+            table = f"({subquery_sql}) {t['alias']}"
+
         else:
             computed_columns.append(handler(t))
 
@@ -49,8 +67,10 @@ def generate_sql(config):
     else:
         select_cols = base_columns
 
+    distinct_sql = "DISTINCT " if distinct_flag else ""
+
     query = (
-        f"SELECT {select_cols} "
+        f"SELECT {distinct_sql}{select_cols} "
         f"FROM {table}"
         f"{join_clause}"
         f"{where_clause}"
@@ -58,5 +78,9 @@ def generate_sql(config):
         f"{order_clause}"
         f"{limit_clause}"
     )
+
+    # apply unions
+    for u in union_clauses:
+        query += f"\n{u}"
 
     return query

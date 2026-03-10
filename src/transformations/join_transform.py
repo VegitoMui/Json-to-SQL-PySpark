@@ -3,6 +3,10 @@ def handle_join_sql(t, base_table):
     join_type = t.get("join_type", "inner").upper()
     join_table = t["table"]
 
+    # CROSS JOIN has no condition
+    if join_type == "CROSS":
+        return f" CROSS JOIN {join_table}"
+
     if "on" in t:
         condition = t["on"]
     else:
@@ -17,6 +21,11 @@ def handle_join_pyspark(t):
     join_type = t.get("join_type", "inner")
 
     code = f'{join_table}_df = spark.table("{join_table}")\n'
+
+    # CROSS JOIN
+    if join_type.lower() == "cross":
+        code += f'df = df.crossJoin({join_table}_df)\n'
+        return code
 
     if "on" in t:
         condition = t["on"]

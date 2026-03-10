@@ -1,3 +1,17 @@
+from src.transformations.distinct_transform import (
+    handle_distinct_sql,
+    handle_distinct_pyspark,
+)
+
+from src.transformations.union_transform import (
+    handle_union_sql,
+    handle_union_pyspark,
+)
+
+from src.transformations.subquery_transform import (
+    handle_subquery_sql,
+    handle_subquery_pyspark,
+)
 from src.transformations.select_transform import (
     handle_select_sql,
     handle_select_pyspark,
@@ -54,8 +68,10 @@ SQL_TRANSFORM_REGISTRY = {
     "order_by": handle_order_sql,
     "limit": handle_limit_sql,
     "window": handle_window_sql,
+    "distinct": handle_distinct_sql,
+    "union": handle_union_sql,
+    "subquery": handle_subquery_sql,
 }
-
 
 PYSPARK_TRANSFORM_REGISTRY = {
     "select": handle_select_pyspark,
@@ -67,4 +83,7 @@ PYSPARK_TRANSFORM_REGISTRY = {
     "order_by": handle_order_pyspark,
     "limit": handle_limit_pyspark,
     "window": handle_window_pyspark,
+    "distinct": handle_distinct_pyspark,
+    "union": handle_union_pyspark,
+    "subquery": handle_subquery_pyspark,
 }
