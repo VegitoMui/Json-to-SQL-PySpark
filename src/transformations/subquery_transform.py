@@ -13,8 +13,20 @@ def handle_subquery_sql(t):
 
 def handle_subquery_pyspark(t):
 
+    from src.generators.pyspark_generator import generate_pyspark
+
     alias = t["alias"]
-    code = "sub_df = df\n"
-    code += f"df = sub_df.alias('{alias}')\n"
+
+    sub_config = {
+        "source": t["source"],
+        "transformations": t["transformations"]
+    }
+
+    inner_code = generate_pyspark(sub_config)
+
+    code = "\n# ----- SUBQUERY START -----\n"
+    code += inner_code
+    code += f'df = df.alias("{alias}")\n'
+    code += "# ----- SUBQUERY END -----\n\n"
 
     return code
